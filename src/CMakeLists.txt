@@ -20,7 +20,8 @@ add_executable(
 
 target_link_libraries(
   ${PROJECT_NAME}
-      dl
-      pthread
+    nutclient
+    dl
+    pthread
   )
 
