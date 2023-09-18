@@ -7,7 +7,7 @@ set(
   file_hpp
   )
 
-set( 
+set(
   file_cpp
     main.cpp
   )
@@ -20,8 +20,8 @@ add_executable(
 
 target_link_libraries(
   ${PROJECT_NAME}
-    nutclient
-    dl
-    pthread
+    libnutclient.a
+#    dl
+#    pthread
   )
 
