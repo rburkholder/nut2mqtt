@@ -22,65 +22,77 @@ int main( int argc, char **argv ) {
 
   config::Values values;
 
-  try {
+  if ( Load( c_sConfigFilename, values ) ) {
+  }
+  else {
+    exit( -1 );
+  }
 
-    if ( Load( c_sConfigFilename, values ) ) {
-    }
-    else {
-      exit( -1 );
-    }
+  try {
 
     client = new nut::TcpClient( values.nut.sHost, 3493 );
 
-    //nut::Device mydev = client->getDevice(argv[1]);
-    nut::Device mydev = client->getDevice( "nuc-sm1500" );
-    std::cout << "Description: " << mydev.getDescription() << std::endl;
+    setName_t setDeviceNames = client->getDeviceNames();
 
-    std::cout << std::endl;
+    for ( const auto& sDeviceName: setDeviceNames ) {
+      std::cout << "Device: " << sDeviceName << std::endl;
 
-    std::cout << "Variables (read-only)" << std::endl;
-    setVariable_RO = mydev.getVariableNames();
-    for ( const auto& sName: setVariable_RO ) {
-      std::cout << sName << ":";
-      vValue_t vValue = mydev.getVariableValue( sName );
-      for ( const auto& sValue: vValue ) {
-        std::cout << " " << sValue;
+      try {
+        nut::Device mydev = client->getDevice( sDeviceName );
+
+        std::cout << "Variables (read-only):" << std::endl;
+        setVariable_RO = mydev.getVariableNames();
+        for ( const auto& sName: setVariable_RO ) {
+          std::cout << sName << ":";
+          vValue_t vValue = mydev.getVariableValue( sName );
+          for ( const auto& sValue: vValue ) {
+            std::cout << " " << sValue;
+          }
+          std::cout << std::endl;
+        }
+
+        std::cout << std::endl;
+
+        std::cout << "Variables (read-write):" << std::endl;
+        setVariable_RW = mydev.getRWVariableNames();
+        for ( const auto& sName: setVariable_RW ) {
+          std::cout << sName << ":";
+          vValue_t vValue = mydev.getVariableValue( sName );
+          for ( const auto& sValue: vValue ) {
+            std::cout << " " << sValue;
+          }
+          std::cout << std::endl;
+        }
+
+        std::cout << std::endl;
+
+        std::cout << "Commands:" << std::endl;
+        setCommand = mydev.getCommandNames();
+        for ( const auto& sName: setCommand ) {
+          std::cout << sName;
+          std::cout << std::endl;
+        }
+
       }
-      std::cout << std::endl;
-    }
-
-    std::cout << std::endl;
-
-    std::cout << "Variables (read-write)" << std::endl;
-    setVariable_RW = mydev.getRWVariableNames();
-    for ( const auto& sName: setVariable_RW ) {
-      std::cout << sName << ":";
-      vValue_t vValue = mydev.getVariableValue( sName );
-      for ( const auto& sValue: vValue ) {
-        std::cout << " " << sValue;
+      catch ( const std::logic_error& e ) {
+        std::cout << "open problems: " << e.what() << std::endl;
       }
-      std::cout << std::endl;
-    }
+      catch ( const nut::IOException& e ) {
+        std::cout << "nut problem: " << e.str() << std::endl;
+      }
 
-    std::cout << std::endl;
-
-    std::cout << "Commands" << std::endl;
-    setCommand = mydev.getCommandNames();
-    for ( const auto& sName: setCommand ) {
-      std::cout << sName;
       std::cout << std::endl;
+
     }
 
   }
-  catch ( const std::logic_error& e ) {
-    std::cout << "open problems: " << e.what() << std::endl;
-  }
-  catch ( const nut::IOException& e ) {
-    std::cout << "nut problem: " << e.str() << std::endl;
+  catch( const std::logic_error& e ) {
+    std::cout << "client open problems: " << e.what() << std::endl;
   }
 
   if ( nullptr != client ) {
     delete client;
+    client = nullptr;
   }
 
   return 0;
