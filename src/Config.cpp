@@ -71,16 +71,17 @@ bool Load( const std::string& sFileName, Values& values ) {
 
     po::options_description config( "Nut2MQTT Config" );
     config.add_options()
-      ( sValue_Nut_Host.c_str(), po::value<std::string>( &values.nut.sHost ), "nut host address or name" )
+
+      ( sValue_Nut_Host.c_str(), po::value<std::string>( &values.nut.sHost )->default_value( "localhost" ), "nut host address or name" )
       ( sValue_Nut_UserName.c_str(), po::value<std::string>( &values.nut.sUserName ), "nut username" )
       ( sValue_Nut_Password.c_str(), po::value<std::string>( &values.nut.sPassword ), "nut password" )
-      ( sValue_Nut_PollInterval.c_str(), po::value<size_t>( &values.nut.sPollInterval ), "nut polling interval (seconds)" )
+      ( sValue_Nut_PollInterval.c_str(), po::value<size_t>( &values.nut.sPollInterval )->default_value( 30 ), "nut polling interval (seconds)" )
 
       ( sValue_Mqtt_Id.c_str(), po::value<std::string>( &values.mqtt.sId ), "mqtt client id" )
-      ( sValue_Mqtt_Host.c_str(), po::value<std::string>( &values.mqtt.sHost ), "mqtt host address or name" )
+      ( sValue_Mqtt_Host.c_str(), po::value<std::string>( &values.mqtt.sHost )->default_value( "localhost" ), "mqtt host address or name" )
       ( sValue_Mqtt_UserName.c_str(), po::value<std::string>( &values.mqtt.sUserName ), "mqtt username" )
       ( sValue_Mqtt_Password.c_str(), po::value<std::string>( &values.mqtt.sPassword ), "mqtt password" )
-      ( sValue_Mqtt_Topic.c_str(), po::value<std::string>( &values.mqtt.sTopic ), "mqtt topic" )
+      ( sValue_Mqtt_Topic.c_str(), po::value<std::string>( &values.mqtt.sTopic )->default_value( "nut/" ), "mqtt topic" )
       ;
     po::variables_map vm;
     //po::store( po::parse_command_line( argc, argv, config ), vm );
