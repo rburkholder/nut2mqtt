@@ -3,7 +3,11 @@
 
 #include <nutclient.h> // requires 'sudo apt install libnutclient-dev'
 
+#include "Config.hpp"
+
 int main( int argc, char **argv ) {
+
+  static const std::string c_sConfigFilename( "nut2mqtt.cfg" );
 
   std::cout << "Nut2MQTT (c)2023 One Unified Net Limited" << std::endl;
 
@@ -16,9 +20,17 @@ int main( int argc, char **argv ) {
 
   nut::Client *client( nullptr );
 
+  config::Values values;
+
   try {
 
-    client = new nut::TcpClient( std::string( "localhost" ), 3493 );
+    if ( Load( c_sConfigFilename, values ) ) {
+    }
+    else {
+      exit( -1 );
+    }
+
+    client = new nut::TcpClient( values.nut.sHost, 3493 );
 
     //nut::Device mydev = client->getDevice(argv[1]);
     nut::Device mydev = client->getDevice( "nuc-sm1500" );
@@ -62,6 +74,9 @@ int main( int argc, char **argv ) {
   }
   catch ( const std::logic_error& e ) {
     std::cout << "open problems: " << e.what() << std::endl;
+  }
+  catch ( const nut::IOException& e ) {
+    std::cout << "nut problem: " << e.str() << std::endl;
   }
 
   if ( nullptr != client ) {
