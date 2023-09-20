@@ -25,7 +25,7 @@ int main( int argc, char **argv ) {
   if ( Load( c_sConfigFilename, values ) ) {
   }
   else {
-    exit( -1 );
+    return EXIT_FAILURE;
   }
 
   try {
@@ -43,7 +43,7 @@ int main( int argc, char **argv ) {
         std::cout << "Variables (read-only):" << std::endl;
         setVariable_RO = mydev.getVariableNames();
         for ( const auto& sName: setVariable_RO ) {
-          std::cout << sName << ":";
+          std::cout << "  " << sName << ":";
           vValue_t vValue = mydev.getVariableValue( sName );
           for ( const auto& sValue: vValue ) {
             std::cout << " " << sValue;
@@ -56,7 +56,7 @@ int main( int argc, char **argv ) {
         std::cout << "Variables (read-write):" << std::endl;
         setVariable_RW = mydev.getRWVariableNames();
         for ( const auto& sName: setVariable_RW ) {
-          std::cout << sName << ":";
+          std::cout << "  " <<sName << ":";
           vValue_t vValue = mydev.getVariableValue( sName );
           for ( const auto& sValue: vValue ) {
             std::cout << " " << sValue;
@@ -69,7 +69,7 @@ int main( int argc, char **argv ) {
         std::cout << "Commands:" << std::endl;
         setCommand = mydev.getCommandNames();
         for ( const auto& sName: setCommand ) {
-          std::cout << sName;
+          std::cout << "  " << sName;
           std::cout << std::endl;
         }
 
@@ -95,6 +95,6 @@ int main( int argc, char **argv ) {
     client = nullptr;
   }
 
-  return 0;
+  return EXIT_SUCCESS;
 }
 
