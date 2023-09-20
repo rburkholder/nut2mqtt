@@ -74,15 +74,17 @@ int main( int argc, char **argv ) {
         }
 
       }
-      catch ( const std::logic_error& e ) {
+      catch( const std::logic_error& e ) {
         std::cout << "open problems: " << e.what() << std::endl;
       }
-      catch ( const nut::IOException& e ) {
+      catch( const nut::IOException& e ) {
+        std::cout << "nut io problem: " << e.str() << std::endl;
+      }
+      catch( nut::NutException& e ) {
         std::cout << "nut problem: " << e.str() << std::endl;
       }
 
       std::cout << std::endl;
-
     }
 
   }
