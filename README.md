@@ -39,3 +39,4 @@ Inspiration:
 
 * https://github.com/dniklewicz/ups-mqtt
 * https://github.com/jnovack/nut-to-mqtt
+* https://networkupstools.org/docs/developer-guide.chunked/ar01s08.html
