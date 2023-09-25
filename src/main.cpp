@@ -15,6 +15,12 @@
 
 #include "Config.hpp"
 
+// TODO:
+//   poll on interval
+//   accept 'set' for writes
+//   track changes and emit delta
+//   accetp 'get' for refresh, specific key for single value
+
 #define QOS         1
 #define TIMEOUT     1000L
 
@@ -120,7 +126,7 @@ int main( int argc, char **argv ) {
           std::cout << std::endl;
         }
 
-        const std::string sTopic = choices.mqtt.sTopic + '/' + sDeviceName; 
+        const std::string sTopic = choices.mqtt.sTopic + '/' + sDeviceName;
         sMessage = '{' + sMessage + '}';
 
         std::cout << "topic: " << sTopic << std::endl;
