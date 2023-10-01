@@ -19,12 +19,14 @@ find_package(Boost ${TF_BOOST_VERSION} REQUIRED COMPONENTS program_options threa
 set(
   file_hpp
     Config.hpp
+    mqtt.hpp
   )
 
 set(
   file_cpp
     main.cpp
     Config.cpp
+    mqtt.cpp
   )
 
 add_executable(

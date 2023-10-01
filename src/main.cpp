@@ -8,21 +8,19 @@
 
 #include <limits.h>
 
+#include <memory>
 #include <iostream>
 
 #include <nutclient.h>
-#include <MQTTClient.h>
 
 #include "Config.hpp"
+#include "mqtt.hpp"
 
 // TODO:
 //   poll on interval
 //   accept 'set' for writes
 //   track changes and emit delta
 //   accetp 'get' for refresh, specific key for single value
-
-#define QOS         1
-#define TIMEOUT     1000L
 
 int main( int argc, char **argv ) {
 
@@ -46,27 +44,12 @@ int main( int argc, char **argv ) {
     return( EXIT_FAILURE );
   }
 
-  MQTTClient clientMqtt;
-  MQTTClient_connectOptions conn_opts = MQTTClient_connectOptions_initializer;
-  MQTTClient_message pubmsg = MQTTClient_message_initializer;
-  MQTTClient_deliveryToken token;
-
-  std::string sMqttUrl = "tcp://" + choices.mqtt.sHost + ":1883";
-
-  if ( ( rc = MQTTClient_create(
-    &clientMqtt, sMqttUrl.c_str(), szHostName, // might use choices.mqtt.id
-    MQTTCLIENT_PERSISTENCE_NONE, NULL) ) != MQTTCLIENT_SUCCESS ) {
-     std::cerr << "Failed to create client, return code " << rc << std::endl;
-     return( EXIT_FAILURE );
+  std::unique_ptr<Mqtt> pMqtt;
+  try {
+    pMqtt = std::make_unique<Mqtt>( choices, szHostName );
   }
-
-  conn_opts.keepAliveInterval = 20;
-  conn_opts.cleansession = 1;
-  conn_opts.username = choices.mqtt.sUserName.c_str();
-  conn_opts.password = choices.mqtt.sPassword.c_str();
-
-  if ( ( rc = MQTTClient_connect( clientMqtt, &conn_opts)) != MQTTCLIENT_SUCCESS ) {
-    std::cerr << "Failed to connect, return code " << rc << std::endl;
+  catch ( const Mqtt::runtime_error& e ) {
+    std::cerr << "mqtt error: " << e.what() << '(' << e.rc << ')' << std::endl;
     return( EXIT_FAILURE );
   }
 
@@ -132,18 +115,12 @@ int main( int argc, char **argv ) {
         std::cout << "topic: " << sTopic << std::endl;
         std::cout << sMessage << std::endl;
 
-        pubmsg.payload = sMessage.begin().base();
-        pubmsg.payloadlen = sMessage.size();
-        pubmsg.qos = QOS;
-        pubmsg.retained = 0;
-        if ( (rc = MQTTClient_publishMessage( clientMqtt, sTopic.c_str(), &pubmsg, &token)) != MQTTCLIENT_SUCCESS) {
-          printf("Failed to publish apparition message, return code %d\n", rc);
+        try {
+          pMqtt->Publish( sTopic, sMessage );
         }
-        else {
-          rc = MQTTClient_waitForCompletion(clientMqtt, token, TIMEOUT);
-          std::cout << "Message " << token << ": " << sTopic << '=' << sMessage << std::endl;
+        catch( const Mqtt::runtime_error& e ) {
+          std::cerr << "mqtt error: " << e.what() << '(' << e.rc << ')' << std::endl;
         }
-
 
         std::cout << std::endl;
 
@@ -179,10 +156,6 @@ int main( int argc, char **argv ) {
   }
 
   //sleep( 20 );
-
-  if ( ( rc = MQTTClient_disconnect( clientMqtt, 10000)) != MQTTCLIENT_SUCCESS )
-    std::cerr << "Failed to disconnect, return code " << rc << std::endl;
-  MQTTClient_destroy( &clientMqtt );
 
   return EXIT_SUCCESS;
 }
