@@ -143,8 +143,8 @@ int main( int argc, char **argv ) {
         signals.async_wait( fSignals );
       }
       else {
-        timerPollInterval.cancel();
         m_pWorkGuard.reset();
+        timerPollInterval.cancel(); // comes after the reset
         bContinue = false;
       }
     };
