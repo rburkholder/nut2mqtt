@@ -16,51 +16,52 @@ file to reflect the version.
 Configuration File template (change usernames, passwords, and addresses):
 ```
 $ cat x64/debug/nut2mqtt.cfg
+#
 nut_enumerate = true
 nut_host = localhost
 nut_username = admin
 nut_password = password
 nut_poll_interval = 15
 
-nut_publish = battery.charge
-nut_publish = battery.voltage
-nut_publish = battery.runtime
-nut_publish = battery.temperature
-nut_publish = input.voltage
-nut_publish = output.current
-nut_publish = output.frequency
-nut_publish = output.voltage
-nut_publish = ups.load
-nut_publish = ups.status
-
-nut_numeric = battery.charge
-nut_numeric = battery.charge.low
-nut_numeric = battery.charge.warning
-nut_numeric = battery.runtime
-nut_numeric = battery.runtime.low
-nut_numeric = battery.temperature
-nut_numeric = battery.voltage
-nut_numeric = battery.voltage.nominal
-nut_numeric = input.voltage
-nut_numeric = input.transfer.high
-nut_numeric = input.transfer.low
-nut_numeric = input.voltage.nominal
-nut_numeric = output.current
-nut_numeric = output.frequency
-nut_numeric = output.voltage
-nut_numeric = output.voltage.nominal
-nut_numeric = ups.load
-nut_numeric = ups.delay.start
-nut_numeric = ups.delay.shutdown
-nut_numeric = ups.realpower.nominal
-nut_numeric = driver.parameter.pollfreq
-nut_numeric = driver.parameter.pollinterval
-
 mqtt_id = nut1
 mqtt_host = 127.0.0.1
 mqtt_username = admin
 mqtt_password = password
 mqtt_topic = nut
+
+publish = battery.charge
+publish = battery.voltage
+publish = battery.runtime
+publish = battery.temperature
+publish = input.voltage
+publish = output.current
+publish = output.frequency
+publish = output.voltage
+publish = ups.load
+publish = ups.status
+
+numeric = battery.charge
+numeric = battery.charge.low
+numeric = battery.charge.warning
+numeric = battery.runtime
+numeric = battery.runtime.low
+numeric = battery.temperature
+numeric = battery.voltage
+numeric = battery.voltage.nominal
+numeric = input.voltage
+numeric = input.transfer.high
+numeric = input.transfer.low
+numeric = input.voltage.nominal
+numeric = output.current
+numeric = output.frequency
+numeric = output.voltage
+numeric = output.voltage.nominal
+numeric = ups.load
+numeric = ups.delay.start
+numeric = ups.delay.shutdown
+numeric = ups.realpower.nominal
+numeric = driver.parameter.pollfreq
+numeric = driver.parameter.pollinterval
 ```
 
 Sample Output

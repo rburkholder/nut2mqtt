@@ -36,14 +36,15 @@ namespace {
   static const std::string sValue_Nut_UserName( "nut_username" );
   static const std::string sValue_Nut_Password( "nut_password" );
   static const std::string sValue_Nut_PollInterval( "nut_poll_interval" );
-  static const std::string sValue_Nut_Field( "nut_publish" );
-  static const std::string sValue_Nut_Numeric( "nut_numeric" );
 
   static const std::string sValue_Mqtt_Id( "mqtt_id" );
   static const std::string sValue_Mqtt_Host( "mqtt_host" );
   static const std::string sValue_Mqtt_UserName( "mqtt_username" );
   static const std::string sValue_Mqtt_Password( "mqtt_password" );
   static const std::string sValue_Mqtt_Topic( "mqtt_topic" );
+
+  static const std::string sValue_Nut_Field( "publish" );
+  static const std::string sValue_Nut_Numeric( "numeric" );
 
   template<typename T>
   bool parse( const std::string& sFileName, po::variables_map& vm, const std::string& name, T& dest ) {
@@ -86,14 +87,15 @@ bool Load( const std::string& sFileName, Values& values ) {
       ( sValue_Nut_UserName.c_str(), po::value<std::string>( &values.nut.sUserName ), "nut username" )
       ( sValue_Nut_Password.c_str(), po::value<std::string>( &values.nut.sPassword ), "nut password" )
       ( sValue_Nut_PollInterval.c_str(), po::value<size_t>( &values.nut.nPollInterval )->default_value( 30 ), "nut polling interval (seconds)" )
-      ( sValue_Nut_Field.c_str(), po::value<vName_t>( &vField ), "nut field to publish" )
-      ( sValue_Nut_Numeric.c_str(), po::value<vName_t>( &vNumeric ), "nut field format as numeric" )
 
       ( sValue_Mqtt_Id.c_str(), po::value<std::string>( &values.mqtt.sId ), "mqtt client id" )
       ( sValue_Mqtt_Host.c_str(), po::value<std::string>( &values.mqtt.sHost )->default_value( "localhost" ), "mqtt host address or name" )
       ( sValue_Mqtt_UserName.c_str(), po::value<std::string>( &values.mqtt.sUserName ), "mqtt username" )
       ( sValue_Mqtt_Password.c_str(), po::value<std::string>( &values.mqtt.sPassword ), "mqtt password" )
       ( sValue_Mqtt_Topic.c_str(), po::value<std::string>( &values.mqtt.sTopic )->default_value( "nut/" ), "mqtt topic" )
+
+      ( sValue_Nut_Field.c_str(), po::value<vName_t>( &vField ), "nut field to publish" )
+      ( sValue_Nut_Numeric.c_str(), po::value<vName_t>( &vNumeric ), "format field for mqtt as numeric" )
       ;
     po::variables_map vm;
     //po::store( po::parse_command_line( argc, argv, config ), vm );
