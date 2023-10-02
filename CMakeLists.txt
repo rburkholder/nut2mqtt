@@ -1,7 +1,7 @@
 # nut2mqtt (solution root)
 cmake_minimum_required (VERSION 3.13)
 
-PROJECT(nut2mqtt)
+PROJECT(nut)
 
 add_definitions(-pthread)
 
