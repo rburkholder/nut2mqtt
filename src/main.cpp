@@ -158,7 +158,7 @@ int main( int argc, char **argv ) {
 
       for ( const auto& sDeviceName: setDeviceNames ) {
         if ( bEnumerate ) {
-          std::cout << "Device: " << sDeviceName << std::endl;
+          std::cout << "\nDevice: " << sDeviceName << std::endl;
         }
 
         try {
@@ -175,8 +175,6 @@ int main( int argc, char **argv ) {
               }
               std::cout << std::endl;
             }
-
-            std::cout << std::endl;
           }
 
           std::string sMessage;
@@ -193,33 +191,36 @@ int main( int argc, char **argv ) {
           }
 
           for ( const auto& sName: setVariable ) {
-            vValue_t vValue = mydev.getVariableValue( sName ); // empty set if does not exist?
-            for ( const std::string& sValue: vValue ) {
-              if ( 1 == vValue.size() ) {
-                if ( bComma ) {
-                  sMessage += ',';
-                }
-                else bComma = true;
-                sMessage += '"' + sName + '"' + ':';
-
-                bool bNumeric( true );
-                setName_t::const_iterator iterNumeric = choices.nut.setNumeric.find( sName );
-                if ( choices.nut.setNumeric.end() == iterNumeric ) {
-                  bNumeric = false;
-                }
-                if ( bNumeric ) {
-                  try {
-                    double value = boost::lexical_cast<double>( sValue );
+            setName_t::const_iterator iterRO = setVariable_RO.find( sName );
+            if ( setVariable_RO.end() != iterRO ) {
+              vValue_t vValue = mydev.getVariableValue( sName ); // empty set if does not exist?
+              for ( const std::string& sValue: vValue ) {
+                if ( 1 == vValue.size() ) {
+                  if ( bComma ) {
+                    sMessage += ',';
                   }
-                  catch( const boost::bad_lexical_cast& e ) {
+                  else bComma = true;
+                  sMessage += '"' + sName + '"' + ':';
+
+                  bool bNumeric( true );
+                  setName_t::const_iterator iterNumeric = choices.nut.setNumeric.find( sName );
+                  if ( choices.nut.setNumeric.end() == iterNumeric ) {
                     bNumeric = false;
                   }
-                }
-                if ( bNumeric ) {
-                  sMessage += sValue;
-                }
-                else {
-                  sMessage += '"' + sValue + '"';
+                  if ( bNumeric ) {
+                    try {
+                      double value = boost::lexical_cast<double>( sValue );
+                    }
+                    catch( const boost::bad_lexical_cast& e ) {
+                      bNumeric = false;
+                    }
+                  }
+                  if ( bNumeric ) {
+                    sMessage += sValue;
+                  }
+                  else {
+                    sMessage += '"' + sValue + '"';
+                  }
                 }
               }
             }
@@ -240,8 +241,7 @@ int main( int argc, char **argv ) {
 
           setVariable_RW = mydev.getRWVariableNames();
           if ( bEnumerate ) {
-            std::cout << std::endl;
-            std::cout << "  Variables (read-write):" << std::endl;
+            std::cout << "\n  Variables (read-write):" << std::endl;
 
             for ( const auto& sName: setVariable_RW ) {
               std::cout << "    " << sName << ":";
@@ -256,7 +256,7 @@ int main( int argc, char **argv ) {
           setCommand = mydev.getCommandNames();
           if ( bEnumerate ) {
             std::cout << std::endl;
-            std::cout << "  Commands:" << std::endl;
+            std::cout << "\n  Commands:" << std::endl;
             for ( const auto& sName: setCommand ) {
               std::cout << "    " << sName;
               std::cout << std::endl;
