@@ -9,7 +9,11 @@
 #include <limits.h>
 
 #include <memory>
+#include <thread>
 #include <iostream>
+
+#include <boost/asio/io_context.hpp>
+#include <boost/asio/executor_work_guard.hpp>
 
 #include <nutclient.h>
 
@@ -21,6 +25,8 @@
 //   accept 'set' for writes
 //   track changes and emit delta
 //   accetp 'get' for refresh, specific key for single value
+
+namespace asio = boost::asio; // from <boost/asio/context.hpp>
 
 int main( int argc, char **argv ) {
 
@@ -52,6 +58,18 @@ int main( int argc, char **argv ) {
     std::cerr << "mqtt error: " << e.what() << '(' << e.rc << ')' << std::endl;
     return( EXIT_FAILURE );
   }
+
+  std::thread m_thread;
+
+  boost::asio::io_context m_io_context;
+
+  using work_guard_t = asio::executor_work_guard<boost::asio::io_context::executor_type>;
+  using pWorkGuard_t = std::unique_ptr<work_guard_t>;
+
+  pWorkGuard_t m_pWorkGuard;
+
+  m_pWorkGuard = std::make_unique<work_guard_t>( asio::make_work_guard( m_io_context ) );
+  m_thread = std::move( std::thread( [&m_io_context](){ m_io_context.run(); } ) );
 
   using setName_t = std::set<std::string>;
   using vValue_t = std::vector<std::string>;
@@ -148,6 +166,11 @@ int main( int argc, char **argv ) {
   }
   catch( const std::logic_error& e ) {
     std::cerr << "client open problems: " << e.what() << std::endl;
+  }
+
+  m_pWorkGuard.reset();
+  if ( m_thread.joinable() ) {
+    m_thread.join();
   }
 
   if ( nullptr != clientNut ) {
