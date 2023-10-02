@@ -9,7 +9,11 @@ sudo apt install libnutclient-dev
 sudo apt install libpaho-mqtt-dev
 ```
 
-Configuration File:
+Note: I use my own [boost building script](https://github.com/rburkholder/libs-build).  Your distirbution's
+boost packages should work as well.  You'll need to adjust the Boost version in the src/CMakeLists.txt
+file to reflect the version.
+
+Configuration File template (change usernames, passwords, and addresses):
 ```
 $ cat x64/debug/nut2mqtt.cfg
 nut_enumerate = true
