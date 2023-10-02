@@ -29,7 +29,7 @@ struct Nut {
   std::string sHost; // address or name (default to localhost)
   std::string sUserName;
   std::string sPassword;
-  size_t sPollInterval; // seconds
+  size_t nPollInterval; // seconds
 };
 
 struct Mqtt {

@@ -34,7 +34,7 @@ namespace {
   static const std::string sValue_Nut_UserName( "nut_username" );
   static const std::string sValue_Nut_Password( "nut_password" );
   static const std::string sValue_Nut_PollInterval( "nut_poll_interval" );
-  
+
   static const std::string sValue_Mqtt_Id( "mqtt_id" );
   static const std::string sValue_Mqtt_Host( "mqtt_host" );
   static const std::string sValue_Mqtt_UserName( "mqtt_username" );
@@ -75,7 +75,7 @@ bool Load( const std::string& sFileName, Values& values ) {
       ( sValue_Nut_Host.c_str(), po::value<std::string>( &values.nut.sHost )->default_value( "localhost" ), "nut host address or name" )
       ( sValue_Nut_UserName.c_str(), po::value<std::string>( &values.nut.sUserName ), "nut username" )
       ( sValue_Nut_Password.c_str(), po::value<std::string>( &values.nut.sPassword ), "nut password" )
-      ( sValue_Nut_PollInterval.c_str(), po::value<size_t>( &values.nut.sPollInterval )->default_value( 30 ), "nut polling interval (seconds)" )
+      ( sValue_Nut_PollInterval.c_str(), po::value<size_t>( &values.nut.nPollInterval )->default_value( 30 ), "nut polling interval (seconds)" )
 
       ( sValue_Mqtt_Id.c_str(), po::value<std::string>( &values.mqtt.sId ), "mqtt client id" )
       ( sValue_Mqtt_Host.c_str(), po::value<std::string>( &values.mqtt.sHost )->default_value( "localhost" ), "mqtt host address or name" )
@@ -98,7 +98,7 @@ bool Load( const std::string& sFileName, Values& values ) {
       bOk &= parse<std::string>( sFileName, vm, sValue_Nut_Host, values.nut.sHost );
       bOk &= parse<std::string>( sFileName, vm, sValue_Nut_UserName, values.nut.sUserName );
       bOk &= parse<std::string>( sFileName, vm, sValue_Nut_Password, values.nut.sPassword );
-      bOk &= parse<size_t>( sFileName, vm, sValue_Nut_PollInterval, values.nut.sPollInterval );
+      bOk &= parse<size_t>( sFileName, vm, sValue_Nut_PollInterval, values.nut.nPollInterval );
 
       bOk &= parse<std::string>( sFileName, vm, sValue_Mqtt_Id, values.mqtt.sId );
       bOk &= parse<std::string>( sFileName, vm, sValue_Mqtt_Host, values.mqtt.sHost );

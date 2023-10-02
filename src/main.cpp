@@ -240,7 +240,7 @@ int main( int argc, char **argv ) {
       }
 
       if ( nullptr != m_pWorkGuard.get() ) {
-        timerPollInterval.expires_after( std::chrono::seconds( choices.nut.sPollInterval ) );
+        timerPollInterval.expires_after( std::chrono::seconds( choices.nut.nPollInterval ) );
         timerPollInterval.async_wait( [&fPoll]( const boost::system::error_code& e ){
           if ( 0 == e.value() ) {
             fPoll();
