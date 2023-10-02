@@ -9,10 +9,11 @@
 #include <limits.h>
 
 #include <memory>
-#include <thread>
+//#include <thread>
 #include <iostream>
 
 #include <boost/asio/io_context.hpp>
+#include <boost/asio/signal_set.hpp>
 #include <boost/asio/executor_work_guard.hpp>
 
 #include <nutclient.h>
@@ -59,7 +60,7 @@ int main( int argc, char **argv ) {
     return( EXIT_FAILURE );
   }
 
-  std::thread m_thread;
+  //std::thread m_thread;
 
   boost::asio::io_context m_io_context;
 
@@ -69,7 +70,7 @@ int main( int argc, char **argv ) {
   pWorkGuard_t m_pWorkGuard;
 
   m_pWorkGuard = std::make_unique<work_guard_t>( asio::make_work_guard( m_io_context ) );
-  m_thread = std::move( std::thread( [&m_io_context](){ m_io_context.run(); } ) );
+  //m_thread = std::move( std::thread( [&m_io_context](){ m_io_context.run(); } ) );
 
   using setName_t = std::set<std::string>;
   using vValue_t = std::vector<std::string>;
@@ -168,17 +169,79 @@ int main( int argc, char **argv ) {
     std::cerr << "client open problems: " << e.what() << std::endl;
   }
 
-  m_pWorkGuard.reset();
-  if ( m_thread.joinable() ) {
-    m_thread.join();
-  }
+  // https://www.boost.org/doc/libs/1_79_0/doc/html/boost_asio/reference/signal_set.html
+  boost::asio::signal_set signals( m_io_context, SIGINT ); // SIGINT is called '^C'
+  //signals.add( SIGKILL ); // not allowed here
+  signals.add( SIGHUP ); // use this as a config change?
+  //signals.add( SIGINFO ); // control T - doesn't exist on linux
+  signals.add( SIGTERM );
+  signals.add( SIGQUIT );
+  signals.add( SIGABRT );
+
+  using fSignals_t = std::function<void(const boost::system::error_code&, int)>;
+  fSignals_t fSignals =
+    [&m_pWorkGuard,&signals,&fSignals](const boost::system::error_code& error_code, int signal_number){
+      std::cout
+        << "signal"
+        << "(" << error_code.category().name()
+        << "," << error_code.value()
+        << "," << signal_number
+        << "): "
+        << error_code.message()
+        << std::endl;
+
+      bool bContinue( true );
+
+      switch ( signal_number ) {
+        case SIGHUP:
+          std::cout << "sig hup noop" << std::endl;
+          break;
+        case SIGTERM:
+          std::cout << "sig term" << std::endl;
+          bContinue = false;
+          break;
+        case SIGQUIT:
+          std::cout << "sig quit" << std::endl;
+          bContinue = false;
+          break;
+        case SIGABRT:
+          std::cout << "sig abort" << std::endl;
+          bContinue = false;
+          break;
+        case SIGINT:
+          std::cout << "sig int" << std::endl;
+          bContinue = false;
+          break;
+        default:
+          break;
+      }
+
+      if ( bContinue ) {
+        signals.async_wait( fSignals );
+      }
+      else {
+        m_pWorkGuard->reset();
+        bContinue = false;
+      }
+    };
+
+  signals.async_wait( fSignals );
+
+  std::cout << "ctrl-c to end" << std::endl;
+
+  //m_pWorkGuard.reset();
+  //if ( m_thread.joinable() ) {
+  //  m_thread.join();
+  //}
+
+  m_io_context.run();
 
   if ( nullptr != clientNut ) {
     delete clientNut;
     clientNut = nullptr;
   }
 
-  //sleep( 20 );
+  //sleep( choices.nut.sPollInterval );
 
   return EXIT_SUCCESS;
 }
