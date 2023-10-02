@@ -10,7 +10,7 @@
 #include "mqtt.hpp"
 
 #define QOS         1
-#define TIMEOUT     1000L
+#define TIMEOUT     250L
 
 Mqtt::Mqtt( const config::Values& choices, const char* szHostName )
 : m_bCreated( false ), m_bConnected( false )
@@ -30,11 +30,11 @@ Mqtt::Mqtt( const config::Values& choices, const char* szHostName )
     MQTTCLIENT_PERSISTENCE_NONE, NULL
     );
 
-  m_bCreated = true;
-
   if ( MQTTCLIENT_SUCCESS != rc ) {
     throw( runtime_error( "Failed to create client", rc ) );
   }
+
+  m_bCreated = true;
 
   rc = MQTTClient_connect( m_clientMqtt, &m_conn_opts );
 
@@ -69,7 +69,7 @@ void Mqtt::Publish( const std::string& sTopic, const std::string& sMessage ) {
     }
     else {
       rc = MQTTClient_waitForCompletion( m_clientMqtt, m_token, TIMEOUT );
-      std::cout << "Message " << m_token << ": " << sTopic << '=' << sMessage << std::endl;
+      std::cout << "Completed " << m_token << ": " << sTopic << '=' << sMessage << std::endl;
     }
   }
 }
