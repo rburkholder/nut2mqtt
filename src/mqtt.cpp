@@ -69,7 +69,7 @@ void Mqtt::Publish( const std::string& sTopic, const std::string& sMessage ) {
     }
     else {
       rc = MQTTClient_waitForCompletion( m_clientMqtt, m_token, TIMEOUT );
-      std::cout << "Completed " << m_token << ": " << sTopic << '=' << sMessage << std::endl;
+      //std::cout << "Completed " << m_token << ": " << sTopic << '=' << sMessage << std::endl;
     }
   }
 }
