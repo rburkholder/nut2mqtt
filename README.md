@@ -68,15 +68,6 @@ nut/sm1500 {"battery.charge":90,"battery.runtime":3077,"battery.voltage":24.5,"u
 nut/sm1500 {"battery.charge":90,"battery.runtime":3077,"battery.voltage":26.1,"ups.status":"OL CHRG"}
 ```
 
-maybe track the following metrics from NUT:
-
-    battery.charge - Battery charge (percent of full)
-    battery.runtime - Battery runtime (seconds)
-    battery.voltage - Battery voltage (V)
-    input.voltage - Input voltage (V)
-    ups.load - Load on UPS (percent of full)
-    ups.status - UPS status
-
 From some user on the internet:  the poll interval in UPS.CONF controls the rate at which NUT queries the UPS, this is where I had my problem with my CyberPower units, the default value of 2 seconds caused my UPS to quit talking to NUT over the USB connection. I ended up with a value of 15 seconds and it has been solid for over a year of continuous operation. I did not try to tune it down to a smaller value, so I do not know what the minimum is for the CyberPower.
 
 Inspiration:
