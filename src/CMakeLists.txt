@@ -45,7 +45,7 @@ target_link_directories(
 target_link_libraries(
   ${PROJECT_NAME}
     libnutclient.a
-    paho-mqtt3c
+    libpaho-mqtt3c.a
     ${Boost_LIBRARIES}
 #    dl
 #    pthread
