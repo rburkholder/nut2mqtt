@@ -12,16 +12,42 @@ sudo apt install libpaho-mqtt-dev
 Configuration File:
 ```
 $ cat x64/debug/nut2mqtt.cfg
+nut_enumerate = true
 nut_host = localhost
 nut_username = admin
 nut_password = password
 nut_poll_interval = 15
+
+nut_publish = ups.status
+nut_publish = battery.charge
+nut_publish = battery.voltage
+nut_publish = battery.runtime
+
+nut_numeric = battery.charge
+nut_numeric = battery.voltage
+nut_numeric = battery.voltage.nominal
+nut_numeric = battery.runtime
+nut_numeric = battery.runtime.low
+nut_numeric = battery.charge.low
+nut_numeric = battery.charge.warning
+nut_numeric = driver.parameter.pollfreq
+nut_numeric = driver.parameter.pollinterval
+nut_numeric = ups.delay.shutdown
 
 mqtt_id = nut1
 mqtt_host = 127.0.0.1
 mqtt_username = admin
 mqtt_password = password
 mqtt_topic = nut
+```
+
+Sample Output
+```
+nut/sm1500 {"battery.charge":100,"battery.runtime":3099,"battery.voltage":26.3,"ups.status":"OL"}
+nut/sm1500 {"battery.charge":100,"battery.runtime":3202,"battery.voltage":26.3,"ups.status":"OB DISCHRG"}
+nut/sm1500 {"battery.charge":89,"battery.runtime":2983,"battery.voltage":24.4,"ups.status":"OB DISCHRG"}
+nut/sm1500 {"battery.charge":90,"battery.runtime":3077,"battery.voltage":24.5,"ups.status":"OL CHRG"}
+nut/sm1500 {"battery.charge":90,"battery.runtime":3077,"battery.voltage":26.1,"ups.status":"OL CHRG"}
 ```
 
 maybe track the following metrics from NUT:

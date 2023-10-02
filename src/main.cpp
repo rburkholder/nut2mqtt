@@ -9,8 +9,9 @@
 #include <limits.h>
 
 #include <memory>
-//#include <thread>
 #include <iostream>
+
+#include <boost/lexical_cast.hpp>
 
 #include <boost/asio/post.hpp>
 #include <boost/asio/io_context.hpp>
@@ -24,10 +25,9 @@
 #include "mqtt.hpp"
 
 // TODO:
-//   poll on interval
 //   accept 'set' for writes
 //   track changes and emit delta
-//   accetp 'get' for refresh, specific key for single value
+//   accept 'get' for refresh, specific key for single value
 
 namespace asio = boost::asio; // from <boost/asio/context.hpp>
 
@@ -62,8 +62,6 @@ int main( int argc, char **argv ) {
     return( EXIT_FAILURE );
   }
 
-  //std::thread m_thread;
-
   boost::asio::io_context m_io_context;
 
   using work_guard_t = asio::executor_work_guard<boost::asio::io_context::executor_type>;
@@ -72,7 +70,6 @@ int main( int argc, char **argv ) {
   pWorkGuard_t m_pWorkGuard;
 
   m_pWorkGuard = std::make_unique<work_guard_t>( asio::make_work_guard( m_io_context ) );
-  //m_thread = std::move( std::thread( [&m_io_context](){ m_io_context.run(); } ) );
 
   asio::steady_timer timerPollInterval( m_io_context );
 
@@ -151,60 +148,88 @@ int main( int argc, char **argv ) {
 
   signals.async_wait( fSignals );
 
-  using fPoll_t = std::function<void()>;
+  using fPoll_t = std::function<void( bool, bool )>;
   fPoll_t fPoll =
-    [&m_pWorkGuard, &setDeviceNames, &clientNut, &choices, &pMqtt, &timerPollInterval, &fPoll](){
+    [&m_pWorkGuard, &setDeviceNames, &clientNut, &choices, &pMqtt, &timerPollInterval, &fPoll]( bool bAll, bool bEnumerate ){
 
       setName_t setVariable_RO;
       setName_t setVariable_RW;
       setName_t setCommand;
 
       for ( const auto& sDeviceName: setDeviceNames ) {
-        std::cout << "Device: " << sDeviceName << std::endl;
+        if ( bEnumerate ) {
+          std::cout << "Device: " << sDeviceName << std::endl;
+        }
 
         try {
           nut::Device mydev = clientNut->getDevice( sDeviceName );
 
-          std::cout << "Variables (read-only):" << std::endl;
           setVariable_RO = mydev.getVariableNames();
-          for ( const auto& sName: setVariable_RO ) {
-            std::cout << "  " << sName << ":";
-            vValue_t vValue = mydev.getVariableValue( sName );
-            for ( const auto& sValue: vValue ) {
-              std::cout << " " << sValue;
+          if ( bEnumerate ) {
+            std::cout << "  Variables (read-only):" << std::endl;
+            for ( const auto& sName: setVariable_RO ) {
+              std::cout << "    " << sName << ":";
+              vValue_t vValue = mydev.getVariableValue( sName );
+              for ( const auto& sValue: vValue ) {
+                std::cout << " " << sValue;
+              }
+              std::cout << std::endl;
             }
+
             std::cout << std::endl;
           }
 
-          std::cout << std::endl;
-
-          std::cout << "Variables (read-write):" << std::endl;
-
           std::string sMessage;
           bool bComma( false );
+          setName_t setVariable;
+          if ( bAll ) setVariable = setVariable_RO;
+          else {
+            if ( choices.nut.setField.empty() ) {
+              setVariable = setVariable_RO;
+            }
+            else {
+              setVariable = choices.nut.setField;
+            }
+          }
 
-          setVariable_RW = mydev.getRWVariableNames();
-          for ( const auto& sName: setVariable_RW ) {
-            std::cout << "  " <<sName << ":";
-            vValue_t vValue = mydev.getVariableValue( sName );
+          for ( const auto& sName: setVariable ) {
+            vValue_t vValue = mydev.getVariableValue( sName ); // empty set if does not exist?
             for ( const std::string& sValue: vValue ) {
-              std::cout << " " << sValue;
               if ( 1 == vValue.size() ) {
                 if ( bComma ) {
                   sMessage += ',';
                 }
                 else bComma = true;
-                sMessage += '"' + sName + '"' + ':' + '"' + sValue + '"';
+                sMessage += '"' + sName + '"' + ':';
+
+                bool bNumeric( true );
+                setName_t::const_iterator iterNumeric = choices.nut.setNumeric.find( sName );
+                if ( choices.nut.setNumeric.end() == iterNumeric ) {
+                  bNumeric = false;
+                }
+                if ( bNumeric ) {
+                  try {
+                    double value = boost::lexical_cast<double>( sValue );
+                  }
+                  catch( const boost::bad_lexical_cast& e ) {
+                    bNumeric = false;
+                  }
+                }
+                if ( bNumeric ) {
+                  sMessage += sValue;
+                }
+                else {
+                  sMessage += '"' + sValue + '"';
+                }
               }
             }
-            std::cout << std::endl;
           }
 
           const std::string sTopic = choices.mqtt.sTopic + '/' + sDeviceName;
           sMessage = '{' + sMessage + '}';
 
-          std::cout << "topic: " << sTopic << std::endl;
-          std::cout << sMessage << std::endl;
+          //std::cout << "topic: " << sTopic << std::endl;
+          //std::cout << sMessage << std::endl;
 
           try {
             pMqtt->Publish( sTopic, sMessage );
@@ -213,13 +238,29 @@ int main( int argc, char **argv ) {
             std::cerr << "mqtt error: " << e.what() << '(' << e.rc << ')' << std::endl;
           }
 
-          std::cout << std::endl;
-
-          std::cout << "Commands:" << std::endl;
-          setCommand = mydev.getCommandNames();
-          for ( const auto& sName: setCommand ) {
-            std::cout << "  " << sName;
+          setVariable_RW = mydev.getRWVariableNames();
+          if ( bEnumerate ) {
             std::cout << std::endl;
+            std::cout << "  Variables (read-write):" << std::endl;
+
+            for ( const auto& sName: setVariable_RW ) {
+              std::cout << "    " << sName << ":";
+              vValue_t vValue = mydev.getVariableValue( sName );
+              for ( const std::string& sValue: vValue ) {
+                std::cout << " " << sValue;
+              }
+              std::cout << std::endl;
+            }
+          }
+
+          setCommand = mydev.getCommandNames();
+          if ( bEnumerate ) {
+            std::cout << std::endl;
+            std::cout << "  Commands:" << std::endl;
+            for ( const auto& sName: setCommand ) {
+              std::cout << "    " << sName;
+              std::cout << std::endl;
+            }
           }
 
         }
@@ -236,14 +277,13 @@ int main( int argc, char **argv ) {
           std::cerr << "unknown problem: " << std::endl;
         }
 
-        std::cout << std::endl;
       }
 
       if ( nullptr != m_pWorkGuard.get() ) {
         timerPollInterval.expires_after( std::chrono::seconds( choices.nut.nPollInterval ) );
         timerPollInterval.async_wait( [&fPoll]( const boost::system::error_code& e ){
           if ( 0 == e.value() ) {
-            fPoll();
+            fPoll( false, false );
           }
           else {
             // Operation canceled [system:125]
@@ -255,13 +295,9 @@ int main( int argc, char **argv ) {
 
   std::cout << "ctrl-c to end" << std::endl;
 
-  asio::post( m_io_context, fPoll );
+  asio::post( m_io_context, std::bind( fPoll, true, choices.nut.bEnumerate ) );
 
   m_io_context.run();
-
-  //if ( m_thread.joinable() ) {
-  //  m_thread.join();
-  //}
 
   if ( nullptr != clientNut ) {
     delete clientNut;

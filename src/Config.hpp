@@ -15,21 +15,27 @@
 /*
  * File:    Config.hpp
  * Author:  raymond@burkholder.net
- * Project: nut2mqtt
+ * Project: Nut2MQTT
  * Created: September 18, 2023 19:24
  */
 
 #pragma once
 
+#include <set>
 #include <string>
 
 namespace config {
 
+using setName_t = std::set<std::string>;
+
 struct Nut {
+  bool bEnumerate;
   std::string sHost; // address or name (default to localhost)
   std::string sUserName;
   std::string sPassword;
   size_t nPollInterval; // seconds
+  setName_t setField; // fields to send to mqtt
+  setName_t setNumeric; // fields to format as numeric (subset of setField)
 };
 
 struct Mqtt {
