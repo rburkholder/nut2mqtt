@@ -13,6 +13,15 @@ Note: I use my own [boost building script](https://github.com/rburkholder/libs-b
 boost packages should work as well.  You'll need to adjust the Boost version in the src/CMakeLists.txt
 file to reflect the version.
 
+To Build:
+```
+mkdir build
+cd build
+cmake ..
+make
+src/nut2mqtt
+```
+
 Configuration File template (change usernames, passwords, and addresses):
 ```
 $ cat x64/debug/nut2mqtt.cfg
