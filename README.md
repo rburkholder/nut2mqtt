@@ -16,8 +16,7 @@ file to reflect the version.
 Configuration File template (change usernames, passwords, and addresses):
 ```
 $ cat x64/debug/nut2mqtt.cfg
-#
-nut_enumerate = true
+nut_enumerate = true    # emit found variables & commands on first iteration
 nut_host = localhost
 nut_username = admin
 nut_password = password
@@ -64,7 +63,11 @@ numeric = driver.parameter.pollfreq
 numeric = driver.parameter.pollinterval
 ```
 
-Sample Output
+ToDo:
+* reconnect mqtt on disconnect
+* reconnect nut client on disconnect
+
+Sample Topic/Message Output:
 ```
 nut/sm1500 {"battery.charge":100,"battery.runtime":3099,"battery.voltage":26.3,"ups.status":"OL"}
 nut/sm1500 {"battery.charge":100,"battery.runtime":3202,"battery.voltage":26.3,"ups.status":"OB DISCHRG"}
