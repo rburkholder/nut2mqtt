@@ -27,6 +27,7 @@ public:
   void Publish( const std::string& sTopic, const std::string& sMessage );
 protected:
 private:
+
   bool m_bCreated;
   bool m_bConnected;
   MQTTClient m_clientMqtt;
@@ -34,4 +35,9 @@ private:
   MQTTClient_message m_pubmsg;
   MQTTClient_deliveryToken m_token;
   const std::string m_sMqttUrl;
+
+  static int messageArrived(void* context, char* topicName, int topicLen, MQTTClient_message* message);
+  static void deliveryComplete(void* context, MQTTClient_deliveryToken dt);
+  static void connectionLost(void* context, char* cause);
+
 };

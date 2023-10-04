@@ -27,7 +27,7 @@ Mqtt::Mqtt( const config::Values& choices, const char* szHostName )
 
   rc = MQTTClient_create(
     &m_clientMqtt, m_sMqttUrl.c_str(), szHostName, // might use choices.mqtt.id
-    MQTTCLIENT_PERSISTENCE_NONE, NULL
+    MQTTCLIENT_PERSISTENCE_NONE, nullptr
     );
 
   if ( MQTTCLIENT_SUCCESS != rc ) {
@@ -35,6 +35,8 @@ Mqtt::Mqtt( const config::Values& choices, const char* szHostName )
   }
 
   m_bCreated = true;
+
+  rc = MQTTClient_setCallbacks( m_clientMqtt, this, &Mqtt::connectionLost, &Mqtt::messageArrived, nullptr );
 
   rc = MQTTClient_connect( m_clientMqtt, &m_conn_opts );
 
@@ -72,4 +74,22 @@ void Mqtt::Publish( const std::string& sTopic, const std::string& sMessage ) {
       //std::cout << "Completed " << m_token << ": " << sTopic << '=' << sMessage << std::endl;
     }
   }
+}
+
+void Mqtt::connectionLost(void* context, char* cause) {
+  Mqtt* self = reinterpret_cast<Mqtt*>( context );
+  std::cerr << "mqtt connection lost" << std::endl;
+}
+
+int Mqtt::messageArrived(void* context, char* topicName, int topicLen, MQTTClient_message* message) {
+  Mqtt* self = reinterpret_cast<Mqtt*>( context );
+  std::cout << "mqtt message: " << std::string( topicName, topicLen ) << " " << std::string( (const char*) message->payload, message->payloadlen ) << std::endl;
+  MQTTClient_freeMessage( &message );
+  MQTTClient_free( topicName );
+  return 1;
+}
+
+void Mqtt::deliveryComplete(void* context, MQTTClient_deliveryToken dt) {
+  Mqtt* self = reinterpret_cast<Mqtt*>( context );
+  std::cout << "mqtt delivery complete" << std::endl;
 }
