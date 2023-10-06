@@ -37,6 +37,7 @@ Mqtt::Mqtt( const config::Values& choices, const char* szHostName )
   m_bCreated = true;
 
   rc = MQTTClient_setCallbacks( m_clientMqtt, this, &Mqtt::connectionLost, &Mqtt::messageArrived, nullptr );
+  //rc = MQTTClient_setCallbacks( m_clientMqtt, this, &Mqtt::connectionLost, &Mqtt::messageArrived, &Mqtt::deliveryComplete ); // requires a signal
 
   rc = MQTTClient_connect( m_clientMqtt, &m_conn_opts );
 
