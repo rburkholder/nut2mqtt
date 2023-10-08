@@ -5,7 +5,6 @@ PROJECT(nut2mqtt)
 
 # https://cmake.org/cmake/help/v3.6/module/FindBoost.html
 #set(Boost_ARCHITECTURE "-x64")
-#set(BOOST_LIBRARYDIR "/usr/local/lib")
 set(Boost_USE_STATIC_LIBS ON)
 set(Boost_USE_MULTITHREADED ON)
 set(Boost_USE_STATIC_RUNTIME OFF)
@@ -16,7 +15,8 @@ set(Boost_USE_STATIC_RUNTIME OFF)
 set(BOOST_INCLUDEDIR "/usr/local/include/boost")
 set(BOOST_LIBRARYDIR "/usr/local/lib")
 
-find_package(Boost 1.81.0 REQUIRED COMPONENTS program_options thread filesystem log)
+#find_package(Boost 1.81.0 REQUIRED COMPONENTS program_options thread filesystem log)
+find_package(Boost REQUIRED COMPONENTS program_options thread filesystem log)
 
 set(
   file_hpp

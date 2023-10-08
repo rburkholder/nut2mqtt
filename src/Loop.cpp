@@ -281,7 +281,8 @@ void Loop::Poll( bool bAll, bool bEnumerate ) {
       }
       else {
         // Operation canceled [system:125]
-        BOOST_LOG_TRIVIAL(warning) << "timer msg: " << e.what();
+        //BOOST_LOG_TRIVIAL(warning) << "timer msg: " << e.what(); // boost 1.81
+        BOOST_LOG_TRIVIAL(warning) << "timer msg: " << e.message(); // boost 1.74
       }
     } );
   }

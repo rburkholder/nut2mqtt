@@ -3,10 +3,29 @@ Communication between Network UPS Tools (NUT) and MQTT
 
 Uses [Network UPS Tools (NUT)](https://networkupstools.org/docs/developer-guide.chunked/ar01s08.html) library
 
-Packages:
+Packages (all platforms):
 ```
 sudo apt install libnutclient-dev
 sudo apt install libpaho-mqtt-dev
+```
+
+Packages (beaglebone):
+```
+# debian version 12.2 (not available yet)
+sudo apt install libboost-filesystem1.81-dev
+sudo apt install libboost-log1.81-dev
+sudo apt install libboost-program-options1.81-dev
+sudo apt install libboost-thread1.81-dev
+# debian version 11.7 (as of 2023/10/08)
+sudo apt install libboost-filesystem1.74-dev
+sudo apt install libboost-log1.74-dev
+sudo apt install libboost-program-options1.74-dev
+sudo apt install libboost-thread1.74-dev
+# debian generic
+sudo apt install libboost-filesystem-dev
+sudo apt install libboost-log-dev
+sudo apt install libboost-program-options-dev
+sudo apt install libboost-thread-dev
 ```
 
 Note: I use my own [boost building script](https://github.com/rburkholder/libs-build).  Your distirbution's
