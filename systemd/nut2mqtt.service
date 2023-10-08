@@ -1,6 +1,7 @@
 # sudo mkdir -p /usr/local/lib/systemd/system
 # sudo cp systemd/nut2mqtt.service /usr/local/lib/systemd/system
 # https://www.freedesktop.org/software/systemd/man/systemd.unit.htm
+# ln -s /home/debian/nut2mqtt/build/src/nut2mqtt /home/debian/nut2mqtt/nut2mqtt
 # systemctl enable nut2mqtt
 # systemctl start nut2mqtt
 [Unit]
