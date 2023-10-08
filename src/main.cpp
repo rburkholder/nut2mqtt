@@ -11,10 +11,7 @@
 #include "Loop.hpp"
 #include "Config.hpp"
 
-// TODO:
-//   build for beagle
-
-namespace asio = boost::asio; // from <boost/asio/context.hpp>
+namespace asio = boost::asio;
 
 int main( int argc, char **argv ) {
 
