@@ -38,8 +38,13 @@ mkdir build
 cd build
 cmake ..
 make
-src/nut2mqtt
+cd ..
+ln -s build/src/nut2mqtt nut2mqtt
+# create & populate nut2mqtt.cfg with example, then to run:
+./nut2mqtt
 ```
+
+An example systemd control file can be found in systemd/nut2mqtt.service.  Change working directory & executable to suit.
 
 Configuration File template (change usernames, passwords, and addresses):
 ```
