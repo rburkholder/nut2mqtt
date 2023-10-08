@@ -133,7 +133,6 @@ void Mqtt::Publish( const std::string& sTopic, const std::string& sMessage, fPub
 void Mqtt::connectionLost( void* context, char* cause ) {
   Mqtt* self = reinterpret_cast<Mqtt*>( context );
   std::cerr << "mqtt connection lost, reconnecting ..." << std::endl;
-  //if ( self->m_threadConnect.joinable() ) self->m_threadConnect.join();
   assert( EState::connected == self->m_state );
   self->Connect();
 }
