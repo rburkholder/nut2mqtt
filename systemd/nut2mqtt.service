@@ -2,8 +2,8 @@
 # sudo cp systemd/nut2mqtt.service /usr/local/lib/systemd/system
 # https://www.freedesktop.org/software/systemd/man/systemd.unit.htm
 # ln -s /home/debian/nut2mqtt/build/src/nut2mqtt /home/debian/nut2mqtt/nut2mqtt
-# systemctl enable nut2mqtt
-# systemctl start nut2mqtt
+# sudo systemctl enable nut2mqtt
+# sudo systemctl start nut2mqtt
 [Unit]
 Description=Nut UPS 2 MQTT Collector
 Documentation=https://github.com/rburkholder/nut2mqtt
