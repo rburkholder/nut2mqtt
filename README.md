@@ -28,19 +28,18 @@ sudo apt install libboost-program-options-dev
 sudo apt install libboost-thread-dev
 ```
 
-Note: I use my own [boost building script](https://github.com/rburkholder/libs-build).  Your distirbution's
-boost packages should work as well.  You'll need to adjust the Boost version in the src/CMakeLists.txt
-file to reflect the version.
-
-To Build:
+To Build statically linked application:
 ```
+git clone https://github.com/rburkholder/nut2mqtt.git
+cd nut2mqtt
 mkdir build
 cd build
 cmake ..
 make
 cd ..
 ln -s build/src/nut2mqtt nut2mqtt
-# create & populate nut2mqtt.cfg with example, then to run:
+# create & populate nut2mqtt.cfg with example
+# then run:
 ./nut2mqtt
 ```
 
