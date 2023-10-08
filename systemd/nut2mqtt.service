@@ -1,0 +1,25 @@
+# sudo mkdir -p /usr/local/lib/systemd/system
+# sudo cp systemd/nut2mqtt.service /usr/local/lib/systemd/system
+# https://www.freedesktop.org/software/systemd/man/systemd.unit.htm
+# systemctl enable nut2mqtt
+# systemctl start nut2mqtt
+[Unit]
+Description=Nut UPS 2 MQTT Collector
+Documentation=https://github.com/rburkholder/nut2mqtt
+After=network.target nut-server.service
+
+[Service]
+Type=simple
+User=debian
+WorkingDirectory=/home/debian/nut2mqtt
+ExecStart=/home/debian/nut2mqtt
+ExecReload=kill -HUP $MAINPID
+KillMode=process
+Restart=on-failure
+RestartSec=5s
+StandardOutput=null
+# note change with logrotate implemented, or to a memory file
+
+[Install]
+WantedBy=multi-user.target
+
