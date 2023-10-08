@@ -5,22 +5,26 @@
   date:    2023/10/01 15:58:25
 */
 
+#include <chrono>
+#include <cassert>
 #include <iostream>
 
 #include "mqtt.hpp"
 
-#define QOS         1
-#define TIMEOUT     250L
+namespace {
+  unsigned int c_nQOS( 1 );
+  unsigned int c_nTimeOut( 2 ); // seconds
+}
 
-Mqtt::Mqtt( const config::Values& choices, boost::asio::io_context& io_context, const char* szHostName )
-: m_bCreated( false ), m_bConnected( false )
-, m_io_context( io_context )
+Mqtt::Mqtt( const config::Values& choices, const char* szHostName )
+: m_state( EState::init )
 , m_conn_opts( MQTTClient_connectOptions_initializer )
 , m_pubmsg( MQTTClient_message_initializer )
 , m_sMqttUrl( "tcp://" + choices.mqtt.sHost + ":1883" )
 {
   m_conn_opts.keepAliveInterval = 20;
   m_conn_opts.cleansession = 1;
+  m_conn_opts.connectTimeout = c_nTimeOut;
   m_conn_opts.username = choices.mqtt.sUserName.c_str();
   m_conn_opts.password = choices.mqtt.sPassword.c_str();
 
@@ -35,36 +39,74 @@ Mqtt::Mqtt( const config::Values& choices, boost::asio::io_context& io_context, 
     throw( runtime_error( "Failed to create client", rc ) );
   }
 
-  m_bCreated = true;
+  m_state = EState::created;
 
   rc = MQTTClient_setCallbacks( m_clientMqtt, this, &Mqtt::connectionLost, &Mqtt::messageArrived, &Mqtt::deliveryComplete );
 
   rc = MQTTClient_connect( m_clientMqtt, &m_conn_opts );
-
-  if ( MQTTCLIENT_SUCCESS != rc ) {
-    throw( runtime_error( "Failed to connect", rc ) );
+  if ( MQTTCLIENT_SUCCESS == rc ) {
+    m_state = EState::connected;
+  }
+  else {
+    m_state = EState::connecting;
+    Connect();
   }
 
-  m_bConnected = true;
 }
 
 Mqtt::~Mqtt() {
-  if ( m_bCreated ) {
-    if ( m_bConnected ) {
-      int rc = MQTTClient_disconnect( m_clientMqtt, 10000 );
+  int rc {};
+  switch ( m_state ) {
+    case EState::retry_connect:
+      m_state = EState::disconnecting;
+      if ( m_threadConnect.joinable() ) m_threadConnect.join();
+      // fall through to EState::connected:
+    case EState::connected:
+      m_state = EState::disconnecting;
+      rc = MQTTClient_disconnect( m_clientMqtt, 1000 );
       if ( MQTTCLIENT_SUCCESS != rc ) {
         std::cerr << "Failed to disconnect, return code " << rc << std::endl;
       }
-    }
+      m_state = EState::destruct;
+      break;
+    default:
+      break;
+  }
+
+  if ( EState::init != m_state ) {
+    assert( EState::destruct == m_state );
     MQTTClient_destroy( &m_clientMqtt );
   }
 }
 
+void Mqtt::Connect() {
+  assert( EState::init != m_state );
+  if ( 1 == MQTTClient_isConnected( m_clientMqtt ) ) {
+    assert( EState::connected == m_state );
+    std::cerr << "mqtt is already connected" << std::endl;
+  }
+  else {
+    m_state = EState::retry_connect;
+    m_threadConnect = std::move( std::thread(
+      [this](){
+        while ( EState::retry_connect == m_state ) {
+          int rc = MQTTClient_connect( m_clientMqtt, &m_conn_opts );
+          if ( MQTTCLIENT_SUCCESS == rc ) {
+            m_state = EState::connected;
+          }
+          else {
+            std::this_thread::sleep_for( std::chrono::milliseconds( 1000 ) );
+          }
+        }
+      } ) );
+  }
+}
+
 void Mqtt::Publish( const std::string& sTopic, const std::string& sMessage, fPublishComplete_t&& fPublishComplete ) {
-  if ( m_bConnected ) {
+  if ( EState::connected == m_state ) {
     m_pubmsg.payload = (void*) sMessage.begin().base();
     m_pubmsg.payloadlen = sMessage.size();
-    m_pubmsg.qos = QOS;
+    m_pubmsg.qos = c_nQOS;
     m_pubmsg.retained = 0;
     MQTTClient_deliveryToken token;
     int rc = MQTTClient_publishMessage( m_clientMqtt, sTopic.c_str(), &m_pubmsg, &token );
@@ -88,9 +130,12 @@ void Mqtt::Publish( const std::string& sTopic, const std::string& sMessage, fPub
   }
 }
 
-void Mqtt::connectionLost(void* context, char* cause) {
+void Mqtt::connectionLost( void* context, char* cause ) {
   Mqtt* self = reinterpret_cast<Mqtt*>( context );
-  std::cerr << "mqtt connection lost" << std::endl;
+  std::cerr << "mqtt connection lost, reconnecting ..." << std::endl;
+  //if ( self->m_threadConnect.joinable() ) self->m_threadConnect.join();
+  assert( EState::connected == self->m_state );
+  self->Connect();
 }
 
 int Mqtt::messageArrived(void* context, char* topicName, int topicLen, MQTTClient_message* message) {

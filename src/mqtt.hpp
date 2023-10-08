@@ -7,19 +7,16 @@
 
 #include <mutex>
 #include <string>
+#include <thread>
 #include <stdexcept>
 #include <functional>
 #include <unordered_map>
-
-#include <boost/asio/io_context.hpp>
 
 #include "Config.hpp"
 
 #include <MQTTClient.h>
 
 // NOTE: config::Values needs to be long-lived
-
-namespace asio = boost::asio; // from <boost/asio/context.hpp>
 
 class Mqtt {
 public:
@@ -30,7 +27,7 @@ public:
     : std::runtime_error( e ) {}
   };
 
-  Mqtt( const config::Values&, boost::asio::io_context&, const char* szHostName );
+  Mqtt( const config::Values&, const char* szHostName );
   ~Mqtt();
 
   using fPublishComplete_t = std::function<void(bool,int)>;
@@ -39,10 +36,10 @@ public:
 protected:
 private:
 
-  asio::io_context& m_io_context;
+  enum class EState{ init, created, connecting, connected, retry_connect, disconnecting, destruct } m_state;
 
-  bool m_bCreated;
-  bool m_bConnected;
+  std::thread m_threadConnect;
+
   MQTTClient m_clientMqtt;
   MQTTClient_connectOptions m_conn_opts;
   MQTTClient_message m_pubmsg;
@@ -53,8 +50,10 @@ private:
   using umapDeliveryToken_t = std::unordered_map<MQTTClient_deliveryToken, fPublishComplete_t>;
   umapDeliveryToken_t m_umapDeliveryToken;
 
-  static int messageArrived(void* context, char* topicName, int topicLen, MQTTClient_message* message);
-  static void deliveryComplete(void* context, MQTTClient_deliveryToken dt);
-  static void connectionLost(void* context, char* cause);
+  static int messageArrived( void* context, char* topicName, int topicLen, MQTTClient_message* message );
+  static void deliveryComplete( void* context, MQTTClient_deliveryToken token );
+  static void connectionLost( void* context, char* cause );
+
+  void Connect();
 
 };

@@ -62,7 +62,7 @@ int main( int argc, char **argv ) {
 
   std::unique_ptr<Mqtt> pMqtt;
   try {
-    pMqtt = std::make_unique<Mqtt>( choices, m_io_context, szHostName );
+    pMqtt = std::make_unique<Mqtt>( choices, szHostName );
   }
   catch ( const Mqtt::runtime_error& e ) {
     std::cerr << "mqtt error: " << e.what() << '(' << e.rc << ')' << std::endl;
