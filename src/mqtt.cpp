@@ -12,8 +12,9 @@
 #define QOS         1
 #define TIMEOUT     250L
 
-Mqtt::Mqtt( const config::Values& choices, const char* szHostName )
+Mqtt::Mqtt( const config::Values& choices, boost::asio::io_context& io_context, const char* szHostName )
 : m_bCreated( false ), m_bConnected( false )
+, m_io_context( io_context )
 , m_conn_opts( MQTTClient_connectOptions_initializer )
 , m_pubmsg( MQTTClient_message_initializer )
 , m_sMqttUrl( "tcp://" + choices.mqtt.sHost + ":1883" )
@@ -36,8 +37,7 @@ Mqtt::Mqtt( const config::Values& choices, const char* szHostName )
 
   m_bCreated = true;
 
-  rc = MQTTClient_setCallbacks( m_clientMqtt, this, &Mqtt::connectionLost, &Mqtt::messageArrived, nullptr );
-  //rc = MQTTClient_setCallbacks( m_clientMqtt, this, &Mqtt::connectionLost, &Mqtt::messageArrived, &Mqtt::deliveryComplete ); // requires a signal
+  rc = MQTTClient_setCallbacks( m_clientMqtt, this, &Mqtt::connectionLost, &Mqtt::messageArrived, &Mqtt::deliveryComplete );
 
   rc = MQTTClient_connect( m_clientMqtt, &m_conn_opts );
 
@@ -60,19 +60,30 @@ Mqtt::~Mqtt() {
   }
 }
 
-void Mqtt::Publish( const std::string& sTopic, const std::string& sMessage ) {
+void Mqtt::Publish( const std::string& sTopic, const std::string& sMessage, fPublishComplete_t&& fPublishComplete ) {
   if ( m_bConnected ) {
     m_pubmsg.payload = (void*) sMessage.begin().base();
     m_pubmsg.payloadlen = sMessage.size();
     m_pubmsg.qos = QOS;
     m_pubmsg.retained = 0;
-    int rc = MQTTClient_publishMessage( m_clientMqtt, sTopic.c_str(), &m_pubmsg, &m_token );
+    MQTTClient_deliveryToken token;
+    int rc = MQTTClient_publishMessage( m_clientMqtt, sTopic.c_str(), &m_pubmsg, &token );
     if ( MQTTCLIENT_SUCCESS != rc ) {
-      throw( runtime_error( "Failed to publish message", rc ) );
+      fPublishComplete( false, rc );
+      //throw( runtime_error( "Failed to publish message", rc ) );
     }
     else {
-      rc = MQTTClient_waitForCompletion( m_clientMqtt, m_token, TIMEOUT );
-      //std::cout << "Completed " << m_token << ": " << sTopic << '=' << sMessage << std::endl;
+      std::lock_guard<std::mutex> lock( m_mutexDeliveryToken );
+      umapDeliveryToken_t::iterator iterDeliveryToken = m_umapDeliveryToken.find( token );
+      if ( m_umapDeliveryToken.end() == iterDeliveryToken ) {
+        m_umapDeliveryToken.emplace( token, std::move( fPublishComplete ) );
+      }
+      else {
+        std::cerr << "delivery token " << token << " already delivered" << std::endl;
+        fPublishComplete( true, 0 );
+        assert( nullptr == iterDeliveryToken->second );
+        m_umapDeliveryToken.erase( iterDeliveryToken );
+      }
     }
   }
 }
@@ -90,7 +101,17 @@ int Mqtt::messageArrived(void* context, char* topicName, int topicLen, MQTTClien
   return 1;
 }
 
-void Mqtt::deliveryComplete(void* context, MQTTClient_deliveryToken dt) {
+void Mqtt::deliveryComplete( void* context, MQTTClient_deliveryToken token ) {
   Mqtt* self = reinterpret_cast<Mqtt*>( context );
-  std::cout << "mqtt delivery complete" << std::endl;
+  //std::cout << "mqtt delivery complete" << std::endl;
+  std::lock_guard<std::mutex> lock( self->m_mutexDeliveryToken );
+  umapDeliveryToken_t::iterator iterDeliveryToken = self->m_umapDeliveryToken.find( token );
+  if ( self->m_umapDeliveryToken.end() == iterDeliveryToken ) {
+    std::cerr << "delivery token " << token << " not yet registered" << std::endl;
+    self->m_umapDeliveryToken.emplace( token, nullptr );
+  }
+  else {
+    iterDeliveryToken->second( true, 0 );
+    self->m_umapDeliveryToken.erase( iterDeliveryToken );
+  }
 }

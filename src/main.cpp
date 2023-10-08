@@ -53,21 +53,21 @@ int main( int argc, char **argv ) {
     return( EXIT_FAILURE );
   }
 
+  asio::io_context m_io_context;
+
+  using work_guard_t = asio::executor_work_guard<asio::io_context::executor_type>;
+  using pWorkGuard_t = std::unique_ptr<work_guard_t>;
+
+  pWorkGuard_t m_pWorkGuard;
+
   std::unique_ptr<Mqtt> pMqtt;
   try {
-    pMqtt = std::make_unique<Mqtt>( choices, szHostName );
+    pMqtt = std::make_unique<Mqtt>( choices, m_io_context, szHostName );
   }
   catch ( const Mqtt::runtime_error& e ) {
     std::cerr << "mqtt error: " << e.what() << '(' << e.rc << ')' << std::endl;
     return( EXIT_FAILURE );
   }
-
-  boost::asio::io_context m_io_context;
-
-  using work_guard_t = asio::executor_work_guard<boost::asio::io_context::executor_type>;
-  using pWorkGuard_t = std::unique_ptr<work_guard_t>;
-
-  pWorkGuard_t m_pWorkGuard;
 
   m_pWorkGuard = std::make_unique<work_guard_t>( asio::make_work_guard( m_io_context ) );
 
@@ -90,7 +90,7 @@ int main( int argc, char **argv ) {
   }
 
   // https://www.boost.org/doc/libs/1_79_0/doc/html/boost_asio/reference/signal_set.html
-  boost::asio::signal_set signals( m_io_context, SIGINT ); // SIGINT is called '^C'
+  asio::signal_set signals( m_io_context, SIGINT ); // SIGINT is called '^C'
   //signals.add( SIGKILL ); // not allowed here
   signals.add( SIGHUP ); // use this as a config change?
   //signals.add( SIGINFO ); // control T - doesn't exist on linux
@@ -232,12 +232,14 @@ int main( int argc, char **argv ) {
           //std::cout << "topic: " << sTopic << std::endl;
           //std::cout << sMessage << std::endl;
 
-          try {
-            pMqtt->Publish( sTopic, sMessage );
-          }
-          catch( const Mqtt::runtime_error& e ) {
-            std::cerr << "mqtt error: " << e.what() << '(' << e.rc << ')' << std::endl;
-          }
+          pMqtt->Publish(
+            sTopic, sMessage,
+            [](bool bStatus, int code ){
+              if ( bStatus ); // ok
+              else {
+                std::cerr << "mqtt publish error: " << code << std::endl;
+              }
+            } );
 
           setVariable_RW = mydev.getRWVariableNames();
           if ( bEnumerate ) {
