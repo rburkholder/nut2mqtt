@@ -21,13 +21,15 @@ find_package(Boost 1.81.0 REQUIRED COMPONENTS program_options thread filesystem 
 set(
   file_hpp
     Config.hpp
+    Loop.hpp
     mqtt.hpp
   )
 
 set(
   file_cpp
-    main.cpp
     Config.cpp
+    Loop.cpp
+    main.cpp
     mqtt.cpp
   )
 

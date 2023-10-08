@@ -73,7 +73,6 @@ numeric = driver.parameter.pollinterval
 ```
 
 ToDo:
-* reconnect mqtt on disconnect
 * reconnect nut client on disconnect
 
 Sample Topic/Message Output:
