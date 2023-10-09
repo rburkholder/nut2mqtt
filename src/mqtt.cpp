@@ -41,7 +41,7 @@ Mqtt::Mqtt( const config::Values& choices, const char* szHostName )
 
   m_state = EState::created;
 
-  rc = MQTTClient_setCallbacks( m_clientMqtt, this, &Mqtt::connectionLost, &Mqtt::messageArrived, &Mqtt::deliveryComplete );
+  rc = MQTTClient_setCallbacks( m_clientMqtt, this, &Mqtt::ConnectionLost, &Mqtt::MessageArrived, &Mqtt::DeliveryComplete );
 
   rc = MQTTClient_connect( m_clientMqtt, &m_conn_opts );
   if ( MQTTCLIENT_SUCCESS == rc ) {
@@ -130,22 +130,29 @@ void Mqtt::Publish( const std::string& sTopic, const std::string& sMessage, fPub
   }
 }
 
-void Mqtt::connectionLost( void* context, char* cause ) {
+void Mqtt::ConnectionLost( void* context, char* cause ) {
+  assert( context );
   Mqtt* self = reinterpret_cast<Mqtt*>( context );
   std::cerr << "mqtt connection lost, reconnecting ..." << std::endl;
   assert( EState::connected == self->m_state );
   self->Connect();
 }
 
-int Mqtt::messageArrived(void* context, char* topicName, int topicLen, MQTTClient_message* message) {
+int Mqtt::MessageArrived( void* context, char* topicName, int topicLen, MQTTClient_message* message ) {
+  assert( context );
   Mqtt* self = reinterpret_cast<Mqtt*>( context );
+  assert( 0 == topicLen  );
   std::cout << "mqtt message: " << std::string( topicName, topicLen ) << " " << std::string( (const char*) message->payload, message->payloadlen ) << std::endl;
+	//const std::string_view svTopic( topicName );
+	//const std::string_view svMessage( (char*)message->payload, message->payloadlen );
   MQTTClient_freeMessage( &message );
   MQTTClient_free( topicName );
   return 1;
 }
 
-void Mqtt::deliveryComplete( void* context, MQTTClient_deliveryToken token ) {
+void Mqtt::DeliveryComplete( void* context, MQTTClient_deliveryToken token ) {
+	// not called with QoS0
+  assert( context );
   Mqtt* self = reinterpret_cast<Mqtt*>( context );
   //std::cout << "mqtt delivery complete" << std::endl;
   std::lock_guard<std::mutex> lock( self->m_mutexDeliveryToken );

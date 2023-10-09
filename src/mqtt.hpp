@@ -50,9 +50,9 @@ private:
   using umapDeliveryToken_t = std::unordered_map<MQTTClient_deliveryToken, fPublishComplete_t>;
   umapDeliveryToken_t m_umapDeliveryToken;
 
-  static int messageArrived( void* context, char* topicName, int topicLen, MQTTClient_message* message );
-  static void deliveryComplete( void* context, MQTTClient_deliveryToken token );
-  static void connectionLost( void* context, char* cause );
+  static int MessageArrived( void* context, char* topicName, int topicLen, MQTTClient_message* message );
+  static void DeliveryComplete( void* context, MQTTClient_deliveryToken token );
+  static void ConnectionLost( void* context, char* cause );
 
   void Connect();
 
