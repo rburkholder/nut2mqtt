@@ -3,13 +3,22 @@ Communication between Network UPS Tools (NUT) and MQTT
 
 Uses [Network UPS Tools (NUT)](https://networkupstools.org/docs/developer-guide.chunked/ar01s08.html) library
 
-Packages (all platforms):
+Features:
+* uses username/password, as created in /etc/nut/upsd.users, to login to the nut-server
+* will enumerate all UPS instances maintained by the service
+* will enumerate all available read-only variables, read-write variables, and commands for each instance
+* on startup, will transmit all read-only variables as a JSON map to the specified MQTT topic
+* on regular intervals, as specified in the nut2mqtt.cfg file, will transmit the variables designated as 'publish' as a JSON map to the specified MQTT topic
+* the variables marked as 'numeric' in the nutqmqtt.cfg file will be transmited as numeric (rather than a string)
+* on a broken connection to the MQTT server, a reconnections will be attempted (to be tested)
+
+Packages to be installed (all platforms):
 ```
 sudo apt install libnutclient-dev
 sudo apt install libpaho-mqtt-dev
 ```
 
-Packages (beaglebone):
+Packages (beaglebone) simply use the 'debian generic' section below, the other two sections are here as a reference:
 ```
 # debian version 12.2 (not available yet)
 sudo apt install libboost-filesystem1.81-dev
