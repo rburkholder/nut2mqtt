@@ -36,7 +36,7 @@ public:
 protected:
 private:
 
-  enum class EState{ init, created, connecting, connected, retry_connect, disconnecting, destruct } m_state;
+  enum class EState{ init, created, connecting, connected, start_reconnect, retry_connect, disconnecting, destruct } m_state;
 
   std::thread m_threadConnect;
 

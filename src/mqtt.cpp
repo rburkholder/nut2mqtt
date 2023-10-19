@@ -43,7 +43,13 @@ Mqtt::Mqtt( const config::Values& choices, const char* szHostName )
 
   rc = MQTTClient_setCallbacks( m_clientMqtt, this, &Mqtt::ConnectionLost, &Mqtt::MessageArrived, &Mqtt::DeliveryComplete );
 
-  rc = MQTTClient_connect( m_clientMqtt, &m_conn_opts );
+  try {
+    rc = MQTTClient_connect( m_clientMqtt, &m_conn_opts );
+  }
+  catch (...) {
+    std::cerr << "mqtt initial connect broken" << std::endl;
+  }
+
   if ( MQTTCLIENT_SUCCESS == rc ) {
     m_state = EState::connected;
   }
@@ -90,12 +96,19 @@ void Mqtt::Connect() {
     m_threadConnect = std::move( std::thread(
       [this](){
         while ( EState::retry_connect == m_state ) {
-          int rc = MQTTClient_connect( m_clientMqtt, &m_conn_opts );
-          if ( MQTTCLIENT_SUCCESS == rc ) {
-            m_state = EState::connected;
+          try {
+            int rc = MQTTClient_connect( m_clientMqtt, &m_conn_opts );
+            if ( MQTTCLIENT_SUCCESS == rc ) {
+              m_state = EState::connected;
+              std::cout << "mqtt re-connected" << std::endl;
+            }
+            else {
+              std::cerr << "mqtt reconnect wait" << std::endl;
+              std::this_thread::sleep_for( std::chrono::milliseconds( 1000 ) );
+            }
           }
-          else {
-            std::this_thread::sleep_for( std::chrono::milliseconds( 1000 ) );
+          catch (...) {
+            std::cerr << "mqtt retry reconnect broken" << std::endl;
           }
         }
       } ) );
@@ -135,7 +148,9 @@ void Mqtt::ConnectionLost( void* context, char* cause ) {
   Mqtt* self = reinterpret_cast<Mqtt*>( context );
   std::cerr << "mqtt connection lost, reconnecting ..." << std::endl;
   assert( EState::connected == self->m_state );
+  self->m_state = EState::start_reconnect;
   self->Connect();
+  std::cout << "mqtt connection started reconnect" << std::endl;
 }
 
 int Mqtt::MessageArrived( void* context, char* topicName, int topicLen, MQTTClient_message* message ) {
