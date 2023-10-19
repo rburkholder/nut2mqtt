@@ -59,6 +59,19 @@ Loop::Loop( const config::Values& choices, asio::io_context& io_context )
 
   m_pWorkGuard = std::make_unique<work_guard_t>( asio::make_work_guard( io_context ) );
 
+  // https://www.boost.org/doc/libs/1_79_0/doc/html/boost_asio/reference/signal_set.html
+
+  //signals.add( SIGKILL ); // not allowed here
+  m_signals.add( SIGHUP ); // use this as a config change?
+  //signals.add( SIGINFO ); // control T - doesn't exist on linux
+  m_signals.add( SIGTERM );
+  m_signals.add( SIGQUIT );
+  m_signals.add( SIGABRT );
+
+  m_signals.async_wait( [this]( const boost::system::error_code& error_code, int signal_number ){
+    Signals( error_code, signal_number );
+  } );
+
   try {
     m_pMqtt = std::make_unique<Mqtt>( choices, szHostName );
   }
@@ -75,19 +88,6 @@ Loop::Loop( const config::Values& choices, asio::io_context& io_context )
     BOOST_LOG_TRIVIAL(error) << "client open problems: " << e.what();
     throw e;
   }
-
-  // https://www.boost.org/doc/libs/1_79_0/doc/html/boost_asio/reference/signal_set.html
-
-  //signals.add( SIGKILL ); // not allowed here
-  m_signals.add( SIGHUP ); // use this as a config change?
-  //signals.add( SIGINFO ); // control T - doesn't exist on linux
-  m_signals.add( SIGTERM );
-  m_signals.add( SIGQUIT );
-  m_signals.add( SIGABRT );
-
-  m_signals.async_wait( [this]( const boost::system::error_code& error_code, int signal_number ){
-    Signals( error_code, signal_number );
-  } );
 
   std::cout << "ctrl-c to end" << std::endl;
 
@@ -126,6 +126,10 @@ void Loop::Signals( const boost::system::error_code& error_code, int signal_numb
       break;
     case SIGINT:
       BOOST_LOG_TRIVIAL(info) << "sig int";
+      bContinue = false;
+      break;
+    case SIGPIPE:
+      BOOST_LOG_TRIVIAL(info) << "sig pipe";
       bContinue = false;
       break;
     default:
