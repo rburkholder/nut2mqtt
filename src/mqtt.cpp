@@ -103,7 +103,7 @@ void Mqtt::Connect() {
               std::cout << "mqtt re-connected" << std::endl;
             }
             else {
-              std::cerr << "mqtt reconnect wait" << std::endl;
+              //std::cerr << "mqtt reconnect wait" << std::endl;
               std::this_thread::sleep_for( std::chrono::milliseconds( 1000 ) );
             }
           }
@@ -150,7 +150,7 @@ void Mqtt::ConnectionLost( void* context, char* cause ) {
   assert( EState::connected == self->m_state );
   self->m_state = EState::start_reconnect;
   self->Connect();
-  std::cout << "mqtt connection started reconnect" << std::endl;
+  //std::cout << "mqtt started reconnect" << std::endl;
 }
 
 int Mqtt::MessageArrived( void* context, char* topicName, int topicLen, MQTTClient_message* message ) {
