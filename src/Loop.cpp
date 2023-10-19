@@ -267,6 +267,11 @@ void Loop::Poll( bool bAll, bool bEnumerate ) {
     }
     catch( const nut::IOException& e ) {
       BOOST_LOG_TRIVIAL(error) << "nut io problem: " << e.str();
+      if ( m_pNutClient->isConnected() ) {}
+      else {
+        m_pNutClient->connect(); // reconnect
+        BOOST_LOG_TRIVIAL(info) << "nut reconnected";
+      }
     }
     catch( nut::NutException& e ) {
       BOOST_LOG_TRIVIAL(error) << "nut problem: " << e.str();

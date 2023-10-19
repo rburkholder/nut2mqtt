@@ -33,7 +33,7 @@ namespace config {
 }
 
 namespace nut {
-  class Client;
+  class TcpClient;
 }
 
 class Mqtt;
@@ -53,7 +53,7 @@ private:
   std::string m_sMqttId;
 
   std::unique_ptr<Mqtt> m_pMqtt;
-  std::unique_ptr<nut::Client> m_pNutClient;
+  std::unique_ptr<nut::TcpClient> m_pNutClient;
 
   using work_guard_t = asio::executor_work_guard<asio::io_context::executor_type>;
   using pWorkGuard_t = std::unique_ptr<work_guard_t>;
