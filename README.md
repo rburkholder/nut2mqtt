@@ -104,9 +104,6 @@ numeric = driver.parameter.pollfreq
 numeric = driver.parameter.pollinterval
 ```
 
-ToDo:
-* reconnect nut client on disconnect
-
 Sample Topic/Message Output:
 ```
 nut/sm1500 {"battery.charge":100,"battery.runtime":3099,"battery.voltage":26.3,"ups.status":"OL"}
