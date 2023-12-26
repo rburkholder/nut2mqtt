@@ -24,6 +24,8 @@
 #include <set>
 #include <string>
 
+#include <ou/mqtt/config.hpp>
+
 namespace config {
 
 using setName_t = std::set<std::string>;
@@ -38,18 +40,10 @@ struct Nut {
   setName_t setNumeric; // fields to format as numeric (subset of setField)
 };
 
-struct Mqtt {
-  std::string sId;
-  std::string sHost; // address or name (port 1833)
-  std::string sUserName;
-  std::string sPassword;
-  std::string sTopic;
-};
-
 struct Values {
 
   Nut nut;
-  Mqtt mqtt;
+  ou::mqtt::Config mqtt;
 
 };
 

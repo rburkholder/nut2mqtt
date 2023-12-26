@@ -22,7 +22,6 @@ set(
   file_hpp
     Config.hpp
     Loop.hpp
-    mqtt.hpp
   )
 
 set(
@@ -30,7 +29,6 @@ set(
     Config.cpp
     Loop.cpp
     main.cpp
-    mqtt.cpp
   )
 
 add_executable(
@@ -49,6 +47,7 @@ target_link_directories(
 target_link_libraries(
   ${PROJECT_NAME}
     libnutclient.a
+    libou_mqtt.a
     libpaho-mqtt3c.a
     ${Boost_LIBRARIES}
   )

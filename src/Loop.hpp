@@ -36,7 +36,10 @@ namespace nut {
   class TcpClient;
 }
 
-class Mqtt;
+namespace ou {
+  class Mqtt;
+}
+
 
 namespace asio = boost::asio; // from <boost/asio/context.hpp>
 
@@ -50,9 +53,7 @@ private:
   const config::Values& m_choices;
   asio::io_context& m_io_context;
 
-  std::string m_sMqttId;
-
-  std::unique_ptr<Mqtt> m_pMqtt;
+  std::unique_ptr<ou::Mqtt> m_pMqtt;
   std::unique_ptr<nut::TcpClient> m_pNutClient;
 
   using work_guard_t = asio::executor_work_guard<asio::io_context::executor_type>;

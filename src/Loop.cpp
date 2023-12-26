@@ -31,9 +31,10 @@
 
 #include <nutclient.h>
 
+#include <ou/mqtt/mqtt.hpp>
+
 #include "Loop.hpp"
 #include "Config.hpp"
-#include "mqtt.hpp"
 
 // TODO:
 //   accept 'set' for writes
@@ -45,7 +46,7 @@ Loop::Loop( const config::Values& choices, asio::io_context& io_context )
 , m_signals( io_context, SIGINT ) // SIGINT is called '^C'
 , m_timerPollInterval( io_context )
 {
-
+/*
   int rc;
   char szHostName[ HOST_NAME_MAX + 1 ];
   rc = gethostname( szHostName, HOST_NAME_MAX + 1 );
@@ -56,7 +57,7 @@ Loop::Loop( const config::Values& choices, asio::io_context& io_context )
     assert( 0 < choices.mqtt.sId.size() );
     m_sMqttId = choices.mqtt.sId;
   }
-
+*/
   m_pWorkGuard = std::make_unique<work_guard_t>( asio::make_work_guard( io_context ) );
 
   // https://www.boost.org/doc/libs/1_79_0/doc/html/boost_asio/reference/signal_set.html
@@ -73,9 +74,9 @@ Loop::Loop( const config::Values& choices, asio::io_context& io_context )
   } );
 
   try {
-    m_pMqtt = std::make_unique<Mqtt>( choices, szHostName );
+    m_pMqtt = std::make_unique<ou::Mqtt>( choices.mqtt );
   }
-  catch ( const Mqtt::runtime_error& e ) {
+  catch ( const ou::Mqtt::runtime_error& e ) {
     BOOST_LOG_TRIVIAL(error) << "mqtt error: " << e.what() << '(' << e.rc << ')';
     throw e;
   }
