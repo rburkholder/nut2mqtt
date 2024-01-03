@@ -37,6 +37,9 @@ sudo apt install libboost-program-options-dev
 sudo apt install libboost-thread-dev
 ```
 
+NOTE: my notes need revamping, but bottom line, you'll need to clone, build and install https://github.com/rburkholder/repertory first to obtain the MQTT interface.  I factored it out as I found I use it 
+across a number of my projects. 
+
 To Build statically linked application:
 ```
 git clone https://github.com/rburkholder/nut2mqtt.git
