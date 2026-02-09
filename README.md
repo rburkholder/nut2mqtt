@@ -55,6 +55,51 @@ ln -s build/src/nut2mqtt nut2mqtt
 ./nut2mqtt
 ```
 
+Nut packages required for running:
+
+```
+sudo apt install nut-client
+sudo apt install nut-server
+
+sed -i 's/MODE=none/MODE=standalone/' /etc/nut/nut.conf
+sed -i 's/maxretry = 3/#maxretry = 4/' /etc/nut/ups.conf
+
+# add to /etc/nut/upsd.users:
+
+[admin]
+  password = <password>
+  actions = SET
+  instcmds = ALL
+#
+[upsmon]
+  password = <password>
+  upsmon master
+
+# example addition for APS UPS to /etc/nut/ups.conf:
+
+[sm1500]
+  driver = usbhid-ups
+  port = auto
+  desc = "sm1500"
+  productid = 0002
+  serial = <serial#>
+
+# add to /etc/nut/upsmon.conf:
+
+MONITOR sm1500@localhost 1 upsmon driver primary
+
+# restart with settings:
+
+sudo systemctl restart nut.target
+
+# on an error like:  'libusb1: Could not open any HID devices: insufficient permissions on everything'
+# add a file: /etc/udev/rules.d/90-nut-ups.rules
+# with
+ACTION=="add", SUBSYSTEM=="usb", ATTR{idVendor}=="051d", ATTR{idProduct}=="0003", MODE="0660", GROUP="nut", TEST==”power/control”, ATTR={power/control}=”on”
+# disconnect the UPS cable and reconnect to reset the privileges
+
+```
+
 An example systemd control file can be found in systemd/nut2mqtt.service.  Change working directory & executable to suit.
 
 Configuration File template (change usernames, passwords, and addresses):
